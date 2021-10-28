@@ -1,0 +1,42 @@
+!pip install sasl
+!pip install thrift
+!pip install thrift-sasl
+!pip install Pyhive
+!pip install tabulate
+
+from pyhive import hive
+from tabulate import tabulate
+import pandas as pd
+
+connect = hive.Connection(host='localhost',port=10000,username='yash_bhise2',password='1413663066785352467',database='default',auth='CUSTOM')
+var = connect.cursor()
+var.execute('SELECT OwnUserId,OwnDisplayName,sum(Scorepoint) as ScorePoint from yashbhiseposts_view GROUP BY OwnUserId, OwnDisplayName ORDER BY ScorePoint DESC LIMIT 10')
+result = var.fetchall()
+result
+
+df1 = pd.read_sql("SELECT DISTINCT(OwnUserId), OwnDisplayName, TitleHead, MainBody FROM yashbhiseposts_view WHERE OwnUserId IN ('87234','89904','6068','4883','179736','95592','9951','63051','49153','51816') ORDER BY OwnUserId",connect)
+df1.head()
+
+df1["ownuserId"] = df1["titlehead"] + df1["mainbody"]
+top_10_uname = list(df1["owndisplayname"].unique())
+top_10_uname
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+# Calculate sum() of TF-IDF and get top 10 words with highest TF-IDF and select only those columns
+
+def calculate_tf_idf(df1):
+   vect = TfidfVectorizer(stop_words='english', lowercase=True) # Remove Stop Words
+   reply = vect.fit_transform(df1["ownuserId"])                 # Use title field for TF/IDF
+   df_tfidf_skl = pd.DataFrame(reply.toarray(), columns=vect.get_feature_names())
+   Totaltf_idf = df_tfidf_skl.sum(axis = 0)                     # Remove sum of TF/IDF for getting top 10 most used words
+   Top10_list = Totaltf_idf.nlargest(10)                        # Get top 10 words per user
+   Top10_words = list(Top10_list.index)                         # Get list of top 10 words
+   df_tfidf_skl[Top10_words]                                    # Select only top 10 words as column
+   return df_tfidf_skl[Top10_words] 
+for each_user0 in top_10_uname:                                 # Iterate over all top 10 users
+   Filtered_data0 = df1[(df1['owndisplayname']==each_user0)]    # Filter data only for selected user
+   tfidf_df = calculate_tf_idf(Filtered_data0)                  # pass on to above function
+   print("For Username ID TF/IDF table : "+each_user0)
+   tfidf_df.insert(0, 'ownuserId', each_user0)                  # attach username ID field to dataframe
+   display(tfidf_df)
