@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS yashbhiseposts (UniqueId int, MainPostTypeId tinyint, ResultId int, GParentIds int, CreDate timestamp, DelDate timestamp, Scorepoint int, VCounts int, MainBody string, OwnUserId int, OwnDisplayName varchar(40), LEUserId int, LEDisplayName varchar(40), LEDate timestamp, LActDate timestamp, z varchar (250), LabelTags varchar (250), AnsCounts int, ComCounts int, FavCounts int, CloDate timestamp, ComOwnDate timestamp, ConLicensePermit varchar (12)) ROW FORMAT SERDE 'org.apache.hadoop.hive.serde2.OpenCSVSerde';
+ 
+LOAD DATA INPATH 'gs://dataproc-staging-us-central1-755148488870-lhnj6qoa/yash-data/200kk.csv' INTO TABLE yashbhiseposts;
+ 
+CREATE VIEW IF NOT EXISTS yashbhiseposts_view as select cast(UniqueId as int) as UniqueId, cast(MainPostTypeId as tinyint) as MainPostTypeId, ResultId , GParentIds ,CreDate , DelDate , cast(Scorepoint as int) as Scorepoint, cast(VCounts as int) as VCounts, MainBody, cast(OwnUserId as int) as OwnUserId, OwnDisplayName as OwnDisplayName, LEUserId, LEDisplayName , LEDate , LActDate , TitleHead , LabelTags , AnsCounts , ComCounts , FavCounts , CloDate , ComOwnDate , ConLicensePermit from yashbhiseposts;
+
+
+2.2.1. The top 10 posts by score:-
+SELECT UniqueId, TitleHead, Scorepoint from yashbhiseposts_view ORDER BY Scorepoint DESC LIMIT 10;
+
+2.2.2. The top 10 users by post score:-
+SELECT OwnUserId,OwnDisplayName,sum(Scorepoint) as Scorepoint from yashbhiseposts_view GROUP BY OwnUserId, OwnDisplayName ORDER BY Scorepoint DESC LIMIT 10;
+
+2.2.3. The number of distinct users, who used the word “cloud” in one of their posts:-
+SELECT COUNT(DISTINCT OwnUserId) as UniqueUsers FROM yashbhiseposts_view WHERE TitleHead LIKE '% cloud %' OR MainBody LIKE '% cloud %';
