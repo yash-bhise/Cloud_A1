@@ -1,0 +1,19 @@
+import numpy as np
+import pandas as pd
+
+df1= pd.read_csv('C:/Users/bhise/200kposts.csv', low_memory=False)
+df1.head()
+
+print(df1['Body'])
+
+df1['Body'] = df1['Body'].str.replace(r'<[^<>]*>', '', regex=True)
+df1["Body"] = df1['Body'].str.replace('[^a-zA-Z]', ' ', regex=True)
+df1["Body"] = df1['Body'].replace(r'\n',' ', regex=True)
+df1['Body'].head()
+
+df1['Title'] = df1['Title'].str.replace(r'<[^<>]*>', '', regex=True)
+df1["Title"] = df1['Title'].str.replace('[^a-zA-Z]', ' ', regex=True)
+df1["Title"] = df1['Title'].replace(r'\n',' ', regex=True)
+df1['Title'].head()
+
+df1.to_csv(r'C:/Users/bhise/200kk.csv')
